@@ -8,41 +8,57 @@ const getAchievements = async (req, res) => {
     const habits = await Habit.find({ user: userId });
     const logs = await HabitLog.find({ user: userId });
 
-    const completedLogs = logs.filter(l => l.completed);
+    const completedLogs = logs.filter((log) => log.completed);
 
-    const achievements = [];
+    const longestStreak =
+      habits.length > 0
+        ? Math.max(...habits.map((habit) => habit.longestStreak || 0))
+        : 0;
 
-    // 1️⃣ First Habit
-    if (habits.length >= 1) {
-      achievements.push({
-        title: "First Step",
-        unlocked: true,
-      });
-    }
-
-    // 2️⃣ 5 Completed Habits
-    if (completedLogs.length >= 5) {
-      achievements.push({
-        title: "Getting Started",
-        unlocked: true,
-      });
-    }
-
-    // 3️⃣ Perfect Day
-    const today = new Date().toISOString().split("T")[0];
-
-    const todayLogs = logs.filter(
-      (l) => l.date.toISOString().split("T")[0] === today
-    );
-
-    const allDone =
-      todayLogs.length > 0 &&
-      todayLogs.every((l) => l.completed);
-
-    achievements.push({
-      title: "Perfect Day",
-      unlocked: allDone,
-    });
+    const achievements = [
+      {
+        title: "First Steps",
+        description: "Create your first habit",
+        progress: habits.length > 0 ? 1 : 0,
+        target: 1,
+        unlocked: habits.length >= 1,
+      },
+      {
+        title: "Week Warrior",
+        description: "Maintain a 7-day streak",
+        progress: Math.min(longestStreak, 7),
+        target: 7,
+        unlocked: longestStreak >= 7,
+      },
+      {
+        title: "Monthly Master",
+        description: "Maintain a 30-day streak",
+        progress: Math.min(longestStreak, 30),
+        target: 30,
+        unlocked: longestStreak >= 30,
+      },
+      {
+        title: "Multi-Tasker",
+        description: "Track 5 habits simultaneously",
+        progress: habits.length,
+        target: 5,
+        unlocked: habits.length >= 5,
+      },
+      {
+        title: "Perfect Week",
+        description: "Complete all habits for 7 days",
+        progress: Math.min(longestStreak, 7),
+        target: 7,
+        unlocked: longestStreak >= 7,
+      },
+      {
+        title: "Century Club",
+        description: "Reach 100 total completions",
+        progress: completedLogs.length,
+        target: 100,
+        unlocked: completedLogs.length >= 100,
+      },
+    ];
 
     res.json(achievements);
   } catch (err) {

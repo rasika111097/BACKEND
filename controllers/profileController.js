@@ -25,7 +25,6 @@ const getProfile = async (req, res) => {
   }
 };
 
-// UPDATE PROFILE (SAFE VERSION)
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -34,7 +33,7 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ❌ Email update removed (safe auth)
+     
     user.name = req.body.name || user.name;
     user.phone = req.body.phone || user.phone;
     user.gender = req.body.gender || user.gender;

@@ -3,39 +3,49 @@ const Habit = require("../models/Habit");
 
 const getEvents = async (req, res) => {
   try {
-    const habits = await Habit.find({
-      user: req.user._id,
-    });
-
     const logs = await HabitLog.find({
       user: req.user._id,
-      completed: true,
     }).populate("habit");
+    
 
-    const groupedData = {};
+
+    const grouped = {};
 
     logs.forEach((log) => {
-      const date = log.date.toISOString().split("T")[0];
+      if(!log.habit) return; 
+      const d = new Date(log.date);
 
-      if (!groupedData[date]) {
-        groupedData[date] = {
-          habits: new Set(),
+      const date =
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+      if (!grouped[date]) {
+        grouped[date] = {
+          total: new Set(),
+          completed: new Set(),
         };
       }
+      // always count selected habit
+      grouped[date].total.add(log.habit._id.toString());
 
-      groupedData[date].habits.add(
-        log.habit._id.toString()
-      );
+      // only completed habits
+      if (log.completed) {
+        grouped[date].completed.add(log.habit._id.toString());
+      }
     });
+    const calendarData = await Promise.all(
+      Object.keys(grouped).map(async (date) => {
+        const total = await Habit.countDocuments({
+          user: req.user._id,
+          selectedDate: date,
+        });
 
-    const calendarData = Object.keys(groupedData).map(
-      (date) => ({
-        date,
-        completed: groupedData[date].habits.size,
-        total: habits.length,
+        return {
+          date,
+          completed: grouped[date].completed.size,
+          total,
+        };
       })
     );
-
     res.status(200).json(calendarData);
   } catch (error) {
     res.status(500).json({

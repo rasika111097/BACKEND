@@ -117,7 +117,7 @@ const toggleHabit = async (req, res) => {
           $gte: new Date(today),
           $lt: new Date(
             new Date(today).getTime() +
-              24 * 60 * 60 * 1000
+            24 * 60 * 60 * 1000
           ),
         },
       });
@@ -146,11 +146,12 @@ const toggleHabit = async (req, res) => {
         date: new Date(),
       });
     }
-
+    habit.$__.version = undefined;
     await habit.save();
 
     res.status(200).json(habit);
   } catch (err) {
+    console.error("Toggle Habit Error:", err);
     res.status(500).json({
       message: err.message,
     });

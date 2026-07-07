@@ -20,14 +20,27 @@ router.post("/", protect, createHabit);
 // BULK CREATE HABITS
 router.post("/bulk", protect, async (req, res) => {
   try {
-    const habitsWithUser = req.body.habits.map((habit) => ({
-      ...habit,
-      user: req.user._id,
-    }));
+    const savedHabits = [];
 
-    const habits = await Habit.insertMany(habitsWithUser);
+    for (const habit of req.body.habits) {
+      const exists = await Habit.findOne({
+        user: req.user._id,
+        title: habit.title,
+        selectedDate: req.body.date,
+      });
 
-    res.status(201).json(habits);
+      if (!exists) {
+        const newHabit = await Habit.create({
+          ...habit,
+          user: req.user._id,
+          selectedDate: req.body.date,
+        });
+
+        savedHabits.push(newHabit);
+      }
+    }
+
+    res.status(201).json(savedHabits);
   } catch (err) {
     res.status(500).json({
       message: err.message,
