@@ -33,11 +33,14 @@ app.use("/api/analytics", require("./routes/analyticsRoutes"));
 app.use("/api/calendar", require("./routes/calendarRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/achievements", require("./routes/achievementRoutes"));
+app.use("/",(req,res)=>{
+  res.send("Habit Tracker Backend API is running...,");
+});
 
 app.use(errorHandler);
 
 // Server start
-const PORT = 5051;
+const PORT = process.env.PORT || 5051;
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 
